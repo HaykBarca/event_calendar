@@ -8,9 +8,9 @@
     const prevMonthButton = document.getElementsByClassName('prevMonth')[0];
     const nextMonthButton = document.getElementsByClassName('nextMonth')[0];
 
+    const monthArray = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const weekdayArray = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     let curTime = new Date();
-    let monthArray = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    let weekdayArray = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     let curYear = curTime.getFullYear();
     let curMonth = curTime.getMonth();
     // let curDay = new Date().getUTCDay();
