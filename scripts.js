@@ -7,6 +7,7 @@
     const nextYearButton = document.getElementsByClassName('nextYear')[0];
     const prevMonthButton = document.getElementsByClassName('prevMonth')[0];
     const nextMonthButton = document.getElementsByClassName('nextMonth')[0];
+    const eventsTable = document.getElementById('eventsTable');
 
     const monthArray = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const weekdayArray = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -42,8 +43,11 @@
 
                 if  (dayController >= startsFrom && day < endsOn) {
                     let textNodes = document.createTextNode(day + 1);
-                    day++;
                     tdAppendedNode.appendChild(textNodes);
+                    tdAppendedNode.addEventListener('click', function(e){
+                        onCreateEvent(e);
+                    });
+                    day++;
                 }
                 dayController++;
             }
@@ -102,6 +106,77 @@
         curYear = curTime.getFullYear();
         curMonth = curTime.getMonth();
         initCalendar();
+    }
+
+    function onCreateEvent(onEvent, day, dayNumber) {
+        let newEventObject;
+        let newEventArray;
+        let eventNode = document.createElement('SPAN');
+        let tableRowNode = document.createElement('TR');
+        let tableCellNode = document.createElement('TD');
+        let id = (new Date()).getTime();
+        let eventTitle = prompt('Event Title');
+        let eventBody = prompt('Event Body');
+        let date = new Date(curTime.getFullYear(), curTime.getMonth(), (dayNumber || parseInt(onEvent.target.innerText)));
+
+        //Checks data validity and makes objects/arrays
+        if (id && eventTitle && eventBody && date) {
+            newEventObject = {id, eventTitle, eventBody, date};
+            newEventArray = [id, eventTitle, eventBody, date];
+        } else {
+            alert('Please enter valid data.');
+            return;
+        }
+
+        //Creating events table DOM
+        eventNode.id = id;
+        eventNode.innerHTML = eventTitle;
+        localStorage.setItem(id, JSON.stringify(newEventObject));
+
+        if (day) {
+            day.classList.add("withEvent");
+            day.appendChild(eventNode);
+        } else {
+            onEvent.target.classList.add("withEvent");
+            onEvent.target.appendChild(eventNode);
+        }
+
+        for (let i = 0; i < 5; i++) {
+            if (i < 4) {
+                tableCellNode.innerHTML = newEventArray[i];
+            } else {
+                tableCellNode.innerHTML = '<button type="button" id="up' + id + '">Update</button><button type="button" id="del' + id + '">Delete</button>';
+            }
+            tableRowNode.appendChild(tableCellNode.cloneNode(true));
+        }
+        eventsTable.appendChild(tableRowNode);
+
+        //Adding event listeners for buttons
+        document.getElementById('up' + id).addEventListener('click', function(e) {
+            onUpdateEvent(e);
+        }); 
+        document.getElementById('del' + id).addEventListener('click', function(e) {
+            onDeleteEvent(e);
+        }); 
+    }
+
+    function onDeleteEvent(onEvent, givenId) {
+        let id = givenId || parseInt(onEvent.target.parentNode.parentNode.childNodes[0].innerHTML);
+        let eventParentNode = onEvent.target.parentNode.parentNode;
+
+        eventParentNode.remove();
+        document.getElementById(id).parentNode.classList = '';
+        document.getElementById(id).remove();
+        localStorage.removeItem(id);
+    }
+
+    function onUpdateEvent(onEvent) {
+        let id = parseInt(onEvent.target.id.split('up')[1]);
+        let day = document.getElementById(id).parentNode;
+        let dayNumber = parseInt(document.getElementById(id).parentNode.childNodes[0].nodeValue);
+        
+        onDeleteEvent(onEvent, id);
+        onCreateEvent(undefined, day, dayNumber);
     }
 
 

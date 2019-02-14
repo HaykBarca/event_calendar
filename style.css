@@ -14,10 +14,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
 .calendar {
-    width: 40%;
+    width: 80%;
 }
 
 .calendar .year,
@@ -36,16 +37,54 @@ body {
     width: 100%;
     font-size: 1.5rem;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
-.calendar .days table ,
-.calendar .days table th ,
+.calendar .days table,
+.calendar .days table th,
 .calendar .days table td {
-    border: 1px solid black
+    border: 1px solid black;
+    position: relative;
+}
+
+.calendar .days table td {
+    cursor: pointer;
+}
+
+.calendar .days table td span {
+    position: absolute;
+    font-size: 1rem;
+    background-color: red;
+    color: white;
+    line-height: 1rem;
+    white-space: nowrap;
+    width: 30%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .calendar .days table th:nth-child(6),
 .calendar .days table th:nth-child(7) {
     background-color: red;
     color: #fff;
+}
+
+.container > .events {
+    height: 100px;
+    width: 80%;
+    margin-top: 20px;
+}
+
+.container > .events table {
+    width: 100%;
+    border: 1px solid black;
+    position: relative;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.container > .events table th,
+.container > .events table td {
+    border: 1px solid black;
+    position: relative;
 }
