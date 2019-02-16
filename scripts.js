@@ -47,6 +47,7 @@
                     tdAppendedNode.addEventListener('click', function(e){
                         onCreateEvent(e);
                     });
+                    tdAppendedNode.id = monthArray[curMonth] + '_' + (day + 1);
                     day++;
                 }
                 dayController++;
@@ -54,6 +55,7 @@
         }
     }
 
+    //Getting all the days in the month 
     function getDaysInMonth(month, year) {
         var date = new Date(year, month, 1);
         var days = [];
@@ -64,6 +66,7 @@
         return days;
     }
 
+    //Deleting table rows and cells for creating new one
     function removeInit() {
         while (calendarWeekdaysTb.firstChild) {
             calendarWeekdaysTb.removeChild(calendarWeekdaysTb.firstChild);
@@ -76,48 +79,57 @@
         }
     }
 
+    //Changing year and recreating calendar and events
     function prevYear() {
         removeInit();
         curTime = new Date(curTime.setFullYear(curYear - 1));
         curYear = curTime.getFullYear();
         curMonth = curTime.getMonth();
         initCalendar();
+        initEvents(true);
     }
 
+    //Changing year and recreating calendar and events
     function nextYear() {
         removeInit();
         curTime = new Date(curTime.setFullYear(curYear + 1));
         curYear = curTime.getFullYear();
         curMonth = curTime.getMonth();
         initCalendar();
+        initEvents(true);
     }
 
+    //Changing month and recreating calendar and events
     function prevMonth() {
         removeInit();
         curTime = new Date(curTime.setMonth(curMonth - 1));
         curYear = curTime.getFullYear();
         curMonth = curTime.getMonth();
         initCalendar();
+        initEvents(true);
     }
 
+    //Changing month and recreating calendar and events
     function nextMonth() {
         removeInit();
         curTime = new Date(curTime.setMonth(curMonth + 1));
         curYear = curTime.getFullYear();
         curMonth = curTime.getMonth();
         initCalendar();
+        initEvents(true);
     }
 
-    function onCreateEvent(onEvent, day, dayNumber) {
+    //For creating events
+    function onCreateEvent(onEvent, day, dayNumber, givenTitle, givenBody, givenId, notCreateList, notCrateOnCalendar, givenDate) {
         let newEventObject;
         let newEventArray;
         let eventNode = document.createElement('SPAN');
         let tableRowNode = document.createElement('TR');
         let tableCellNode = document.createElement('TD');
-        let id = (new Date()).getTime();
-        let eventTitle = prompt('Event Title');
-        let eventBody = prompt('Event Body');
-        let date = new Date(curTime.getFullYear(), curTime.getMonth(), (dayNumber || parseInt(onEvent.target.innerText)));
+        let id = givenId || (new Date()).getTime();
+        let eventTitle = givenTitle || prompt('Event Title');
+        let eventBody = givenBody || prompt('Event Body');
+        let date = givenDate || new Date(curTime.getFullYear(), curTime.getMonth(), (dayNumber || parseInt(onEvent.target.innerText)));
 
         //Checks data validity and makes objects/arrays
         if (id && eventTitle && eventBody && date) {
@@ -128,57 +140,95 @@
             return;
         }
 
-        //Creating events table DOM
-        eventNode.id = id;
-        eventNode.innerHTML = eventTitle;
         localStorage.setItem(id, JSON.stringify(newEventObject));
 
-        if (day) {
-            day.classList.add("withEvent");
-            day.appendChild(eventNode);
-        } else {
-            onEvent.target.classList.add("withEvent");
-            onEvent.target.appendChild(eventNode);
-        }
+        if (!notCrateOnCalendar) { //If needs to not create event on calendar, but create on table
+            //Creating events table DOM
+            eventNode.id = id;
+            eventNode.innerHTML = eventTitle;
 
-        for (let i = 0; i < 5; i++) {
-            if (i < 4) {
-                tableCellNode.innerHTML = newEventArray[i];
+            if (day) {
+                day.classList.add("withEvent");
+                day.appendChild(eventNode);
             } else {
-                tableCellNode.innerHTML = '<button type="button" id="up' + id + '">Update</button><button type="button" id="del' + id + '">Delete</button>';
+                onEvent.target.classList.add("withEvent");
+                onEvent.target.appendChild(eventNode);
             }
-            tableRowNode.appendChild(tableCellNode.cloneNode(true));
         }
-        eventsTable.appendChild(tableRowNode);
 
-        //Adding event listeners for buttons
-        document.getElementById('up' + id).addEventListener('click', function(e) {
-            onUpdateEvent(e);
-        }); 
-        document.getElementById('del' + id).addEventListener('click', function(e) {
-            onDeleteEvent(e);
-        }); 
+        if (!notCreateList) { //If needs to not create event on table, but create on calendar
+            for (let i = 0; i < 5; i++) {
+                if (i < 4) {
+                    tableCellNode.innerHTML = newEventArray[i];
+                } else {
+                    tableCellNode.innerHTML = '<button type="button" id="up' + id + '">Update</button><button type="button" id="del' + id + '">Delete</button>';
+                }
+                tableRowNode.appendChild(tableCellNode.cloneNode(true));
+            }
+            eventsTable.appendChild(tableRowNode);
+    
+            //Adding event listeners for buttons
+            document.getElementById('up' + id).addEventListener('click', function(e) {
+                onUpdateEvent(e);
+            }); 
+            document.getElementById('del' + id).addEventListener('click', function(e) {
+                onDeleteEvent(e);
+            }); 
+        }
     }
 
+    //Removing event from local storage and tables
     function onDeleteEvent(onEvent, givenId) {
         let id = givenId || parseInt(onEvent.target.parentNode.parentNode.childNodes[0].innerHTML);
         let eventParentNode = onEvent.target.parentNode.parentNode;
+        let eventObjectDate = new Date(JSON.parse(localStorage.getItem(id)).date);
 
+        
+        if (curYear === eventObjectDate.getFullYear() && curMonth === eventObjectDate.getMonth()) {
+            document.getElementById(id).parentNode.classList = '';
+            document.getElementById(id).remove();
+        }
         eventParentNode.remove();
-        document.getElementById(id).parentNode.classList = '';
-        document.getElementById(id).remove();
         localStorage.removeItem(id);
     }
 
+    //Updating event with same id and diff body/title 
     function onUpdateEvent(onEvent) {
         let id = parseInt(onEvent.target.id.split('up')[1]);
-        let day = document.getElementById(id).parentNode;
-        let dayNumber = parseInt(document.getElementById(id).parentNode.childNodes[0].nodeValue);
-        
-        onDeleteEvent(onEvent, id);
-        onCreateEvent(undefined, day, dayNumber);
+        let eventObjectDate = new Date(JSON.parse(localStorage.getItem(id)).date);
+
+        if (curYear === eventObjectDate.getFullYear() && curMonth === eventObjectDate.getMonth()) {
+            let day = document.getElementById(id).parentNode;
+            let dayNumber = parseInt(document.getElementById(id).parentNode.childNodes[0].nodeValue);
+
+            onDeleteEvent(onEvent, id);
+            onCreateEvent(undefined, day, dayNumber);
+        } else {
+
+            onDeleteEvent(onEvent, id);
+            onCreateEvent(undefined, undefined, undefined, undefined, undefined, undefined, undefined, true, eventObjectDate)
+        }
     }
 
+    //For recreating and keeping events
+    function initEvents(changeYearMonth) {
+        for (let i = 0; i < localStorage.length; i++) {
+            let eachEvent = JSON.parse(localStorage.getItem(localStorage.key(i)));
+            let eventDate = new Date(eachEvent.date);
+
+            if (curYear === eventDate.getFullYear() && curMonth === eventDate.getMonth() && !changeYearMonth) {
+                let day = document.getElementById(monthArray[curMonth] + '_' + eventDate.getDate());
+                let dayNumber = eventDate.getDate();
+                
+                onCreateEvent(undefined, day, dayNumber, eachEvent.eventTitle, eachEvent.eventBody, eachEvent.id);
+            } else if (curYear === eventDate.getFullYear() && curMonth === eventDate.getMonth() && changeYearMonth) {
+                let day = document.getElementById(monthArray[curMonth] + '_' + eventDate.getDate());
+                let dayNumber = eventDate.getDate();
+                
+                onCreateEvent(undefined, day, dayNumber, eachEvent.eventTitle, eachEvent.eventBody, eachEvent.id, true);
+            }
+        }    
+    }
 
     //Adding event listeners
     prevYearButton.addEventListener('click', prevYear);
@@ -187,4 +237,5 @@
     nextMonthButton.addEventListener('click', nextMonth);
 
     initCalendar();
+    initEvents();
 })(document);
